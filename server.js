@@ -1,57 +1,50 @@
-const form = document.getElementById('transaction-form');
-const ctx = document.getElementById('summaryChart').getContext('2d');
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
-// Use your live backend URL
-const API_URL = "https://pfms-backend1.onrender.com/api";
+dotenv.config();
+const app = express();
+app.use(express.json());
 
-// Fetch summary data from backend
-async function loadSummary() {
-  const res = await fetch(`${API_URL}/summary`);
-  const data = await res.json();
+// Connect to MongoDB Atlas
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error(err));
 
-  const months = Object.keys(data);
-  const income = months.map(m => data[m].income);
-  const expense = months.map(m => data[m].expense);
+// Transaction model
+const Transaction = mongoose.model('Transaction', new mongoose.Schema({
+  type: String,
+  category: String,
+  amount: Number,
+  note: String,
+  date: { type: Date, default: Date.now }
+}));
 
-  chart.data.labels = months;
-  chart.data.datasets[0].data = income;
-  chart.data.datasets[1].data = expense;
-  chart.update();
-}
+// Routes
+app.get('/api/transactions', async (req, res) => {
+  const transactions = await Transaction.find();
+  res.json(transactions);
+});
 
-// Handle form submit
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  const payload = {
-    type: document.getElementById('type').value,
-    category: document.getElementById('category').value,
-    amount: Number(document.getElementById('amount').value),
-    note: document.getElementById('note').value
-  };
+app.post('/api/transactions', async (req, res) => {
+  const transaction = new Transaction(req.body);
+  await transaction.save();
+  res.json(transaction);
+});
 
-  await fetch(`${API_URL}/transactions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+app.get('/api/summary', async (req, res) => {
+  const transactions = await Transaction.find();
+  const summary = {};
+  transactions.forEach(t => {
+    const month = new Date(t.date).toLocaleString('default', { month: 'short' });
+    if (!summary[month]) summary[month] = { income: 0, expense: 0 };
+    if (t.type === 'income') summary[month].income += t.amount;
+    else summary[month].expense += t.amount;
   });
-
-  form.reset();
-  loadSummary(); // refresh chart with backend data
+  res.json(summary);
 });
 
-// Chart setup
-const chart = new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: [],
-    datasets: [
-      { label:'Income', data:[], backgroundColor:'#2c7a7b' },
-      { label:'Expense', data:[], backgroundColor:'#e53e3e' }
-    ]
-  },
-  options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
-});
-
-// Initial load
-loadSummary();
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
