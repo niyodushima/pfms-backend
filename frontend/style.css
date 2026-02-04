@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9fafb; }
+header { background:#2c7a7b; color:white; text-align:center; padding:20px; }
+section { max-width:800px; margin:20px auto; padding:20px; background:white; border-radius:8px; }
+form { display:flex; gap:10px; flex-wrap:wrap; }
+input, select, button { padding:8px; border:1px solid #ccc; border-radius:4px; }
+button { background:#2c7a7b; color:white; cursor:pointer; }
+button:hover { background:#285e61; }
