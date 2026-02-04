@@ -1,7 +1,85 @@
-body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f9fafb; }
-header { background:#2c7a7b; color:white; text-align:center; padding:20px; }
-section { max-width:800px; margin:20px auto; padding:20px; background:white; border-radius:8px; }
-form { display:flex; gap:10px; flex-wrap:wrap; }
-input, select, button { padding:8px; border:1px solid #ccc; border-radius:4px; }
-button { background:#2c7a7b; color:white; cursor:pointer; }
-button:hover { background:#285e61; }
+/* Base styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f9fafb;
+}
+
+header {
+  background: #2c7a7b;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+section {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Form layout */
+form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+input, select, button {
+  flex: 1 1 150px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background: #2c7a7b;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #285e61;
+}
+
+/* Chart section */
+canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Responsive rules */
+@media (max-width: 768px) {
+  section {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  form {
+    flex-direction: column;
+  }
+
+  input, select, button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  header p {
+    font-size: 0.9rem;
+  }
+
+  button {
+    padding: 12px;
+    font-size: 1rem;
+  }
+}
