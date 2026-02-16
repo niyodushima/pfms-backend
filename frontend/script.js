@@ -1,14 +1,14 @@
 const form = document.getElementById('transaction-form');
 const ctx = document.getElementById('summaryChart').getContext('2d');
 
-// Use your live backend URL
-const API_URL = "https://pfms-backend1.onrender.com/api";
+// ✅ Use the correct live backend URL
+const API_URL = "https://pfms-backend-1.onrender.com/api";
 
 // Fetch summary data
 async function loadSummary() {
   try {
     const res = await fetch(`${API_URL}/summary`);
-    if (!res.ok) throw new Error("Failed to fetch summary");
+    if (!res.ok) throw new Error(`Failed to fetch summary: ${res.status}`);
     const data = await res.json();
     updateChart(data);
   } catch (err) {
@@ -40,14 +40,19 @@ form.addEventListener('submit', async e => {
     note: document.getElementById('note').value
   };
 
-  await fetch(`${API_URL}/transactions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  form.reset();
-  loadSummary();
+  try {
+    const res = await fetch(`${API_URL}/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`Failed to add transaction: ${res.status}`);
+    form.reset();
+    loadSummary();
+  } catch (err) {
+    console.error(err);
+    alert("Error saving transaction");
+  }
 });
 
 // Chart setup
