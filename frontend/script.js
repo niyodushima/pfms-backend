@@ -1,13 +1,53 @@
+import Chart from 'chart.js/auto';
+
 const form = document.getElementById('transaction-form');
 const ctx = document.getElementById('summaryChart').getContext('2d');
 
 // ✅ Use the correct live backend URL
 const API_URL = "https://pfms-backend-1.onrender.com/api";
 
-// Fetch summary data
+// --- Helper: Get token from localStorage ---
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+// --- Login flow ---
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!res.ok) throw new Error(`Login failed: ${res.status}`);
+      const data = await res.json();
+
+      // Save token + role
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.role);
+
+      alert("Login successful!");
+      loadSummary(); // load reports after login
+    } catch (err) {
+      console.error(err);
+      alert("Error logging in");
+    }
+  });
+}
+
+// --- Fetch summary data ---
 async function loadSummary() {
   try {
-    const res = await fetch(`${API_URL}/summary`);
+    const res = await fetch(`${API_URL}/summary`, {
+      headers: { Authorization: `Bearer ${getToken()}` }
+    });
     if (!res.ok) throw new Error(`Failed to fetch summary: ${res.status}`);
     const data = await res.json();
     updateChart(data);
@@ -25,7 +65,7 @@ function updateChart(data) {
   chart.update();
 }
 
-// Handle form submit
+// --- Handle transaction form submit ---
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const amount = Number(document.getElementById('amount').value);
@@ -43,7 +83,10 @@ form.addEventListener('submit', async e => {
   try {
     const res = await fetch(`${API_URL}/transactions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`
+      },
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error(`Failed to add transaction: ${res.status}`);
@@ -55,7 +98,7 @@ form.addEventListener('submit', async e => {
   }
 });
 
-// Chart setup
+// --- Chart setup ---
 const chart = new Chart(ctx, {
   type: 'bar',
   data: {
@@ -68,5 +111,7 @@ const chart = new Chart(ctx, {
   options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
 });
 
-// Initial load
-loadSummary();
+// --- Initial load (only if logged in) ---
+if (getToken()) {
+  loadSummary();
+}
