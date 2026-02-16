@@ -4,8 +4,8 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 // Route imports
-const transactionRoutes = require('./routes/transactions'); 
-const authRoutes = require('./routes/auth'); // ✅ new auth routes
+const transactionRoutes = require('./routes/transactions');
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
 connectDB();
@@ -14,10 +14,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Mount authentication routes
+// Auth routes
 app.use('/api/auth', authRoutes);
 
-// ✅ Mount transaction/reporting routes
+// Transaction & reporting routes
 app.use('/api', transactionRoutes);
 
 const PORT = process.env.PORT || 5000;
