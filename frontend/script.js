@@ -3,16 +3,42 @@ import Chart from 'chart.js/auto';
 const form = document.getElementById('transaction-form');
 const ctx = document.getElementById('summaryChart').getContext('2d');
 
-// ✅ Use the correct live backend URL
 const API_URL = "https://pfms-backend-1.onrender.com/api";
 
-// --- Helper: Get token from localStorage ---
 function getToken() {
   return localStorage.getItem('token');
 }
 
+// --- Registration flow ---
+const registerForm = document.getElementById('register-form');
+if (registerForm) {
+  registerForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const role = document.getElementById('register-role').value;
+
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password, role })
+      });
+      if (!res.ok) throw new Error(`Registration failed: ${res.status}`);
+      alert("Registration successful! You can now log in.");
+      registerForm.reset();
+    } catch (err) {
+      console.error(err);
+      alert("Error registering user");
+    }
+  });
+}
+
 // --- Login flow ---
 const loginForm = document.getElementById('login-form');
+const logoutBtn = document.getElementById('logout-btn');
+
 if (loginForm) {
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -29,16 +55,26 @@ if (loginForm) {
       if (!res.ok) throw new Error(`Login failed: ${res.status}`);
       const data = await res.json();
 
-      // Save token + role
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.role);
 
       alert("Login successful!");
-      loadSummary(); // load reports after login
+      logoutBtn.style.display = "block";
+      loadSummary();
     } catch (err) {
       console.error(err);
       alert("Error logging in");
     }
+  });
+}
+
+// --- Logout flow ---
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    alert("Logged out successfully");
+    logoutBtn.style.display = "none";
   });
 }
 
@@ -113,5 +149,6 @@ const chart = new Chart(ctx, {
 
 // --- Initial load (only if logged in) ---
 if (getToken()) {
+  logoutBtn.style.display = "block";
   loadSummary();
 }
